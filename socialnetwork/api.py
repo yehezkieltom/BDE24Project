@@ -1,7 +1,7 @@
 from django.db.models import Q
 
 from fame.models import Fame, FameLevels
-from socialnetwork.models import Posts, SocialNetworkUsers
+from socialnetwork.models import PostExpertiseAreasAndRatings, Posts, SocialNetworkUsers
 
 # general methods independent of html and REST views
 # should be used by REST and html views
@@ -112,14 +112,31 @@ def submit_post(
 
     #########################
     # add your code here
+    # prep work to minimize query calls to the database
+    user_expertise = Fame.objects.filter(user=user)
+    # T1
     # Fetch the fame level tied to the user and get any expertise area with
-    # negative fame level
-    
-    negative_user_expertise_count = Fame.objects.filter(
-        user=user, fame_level__numeric_value__lt=0
-    ).values("expertise_area")
-    if negative_user_expertise_count.count() > 0:
+
+    negative_user_expertise = user_expertise.filter(
+        fame_level__numeric_value__lt=0
+        ).values("expertise_area")
+    if negative_user_expertise.count() > 0:
         post.published = False
+
+    # T2a
+    negative_truth_ratings = PostExpertiseAreasAndRatings.objects.filter(
+        post=post, truth_rating__numeric_value__lt=0
+    ).values("expertise_area")
+    for ntr in negative_truth_ratings:
+        deteriorating_user_expertise = user_expertise.filter(expertise_area=ntr["expertise_area"])
+        if deteriorating_user_expertise.count() == 0:
+            continue
+        deteriorating_user_expertise.values("fame_level").get_next_lower_fame_level()
+
+    T2b
+    unassigned_negative_truth_ratings = negative_truth_ratings.exclude(user=user)
+
+    # print(negative_truth_rating)
     #########################
 
     post.save()
