@@ -112,6 +112,14 @@ def submit_post(
 
     #########################
     # add your code here
+    # Fetch the fame level tied to the user and get any expertise area with
+    # negative fame level
+    
+    negative_user_expertise_count = Fame.objects.filter(
+        user=user, fame_level__numeric_value__lt=0
+    ).values("expertise_area")
+    if negative_user_expertise_count.count() > 0:
+        post.published = False
     #########################
 
     post.save()
