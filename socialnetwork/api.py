@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from fame.models import Fame, FameLevels
+from fame.models import Fame, FameLevels, FameUsers
 from socialnetwork.models import PostExpertiseAreasAndRatings, Posts, SocialNetworkUsers, ExpertiseAreas
 
 # general methods independent of html and REST views
@@ -142,29 +142,18 @@ def submit_post(
                 fame_level=FameLevels.objects.get(name="Confuser")
             )
             new_bad_user_expertise.save()
-        else:
-            #T2a
+            continue
+        #T2a
+        try:
             lower_level = deteriorating_user_expertise.fame_level.get_next_lower_fame_level()
+            print(lower_level)
             deteriorating_user_expertise.fame_level = lower_level
             deteriorating_user_expertise.save()
-            
-
-
-
-    #T2b
-    # unassigned_negative_truth_ratings = PostExpertiseAreasAndRatings.objects.filter(
-    #     post=post, truth_rating__numeric_value__lt=0
-    # ).values("expertise_area")
-    # for untr in unassigned_negative_truth_ratings:
-    #     deteriorating_user_expertise = Fame.objects.create(
-    #         user=user,
-    #         expertise_area=untr["expertise_area"],
-    #         fame_level=FameLevels.objects.get(name="Confuser")
-    #     )
-    #     deteriorating_user_expertise.save()
-
-    # print(negative_truth_rating)
-    #########################
+        except ValueError:
+            #T2c
+            FameUsers.objects.filter(id=user.id).update(is_active=False)
+            Posts.objects.filter(id=post.id).update(published=False)
+            redirect_to_logout = True
 
     post.save()
 
