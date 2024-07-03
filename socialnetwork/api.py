@@ -152,7 +152,7 @@ def submit_post(
         except ValueError:
             #T2c
             FameUsers.objects.filter(id=user.id).update(is_active=False)
-            Posts.objects.filter(id=post.id).update(published=False)
+            Posts.objects.filter(author=user).update(published=False)
             redirect_to_logout = True
 
     post.save()
