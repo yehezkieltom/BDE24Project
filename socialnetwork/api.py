@@ -112,7 +112,8 @@ def submit_post(
 
     #########################
     # add your code here
-    # prep work to minimize query calls to the database
+    # prep work to minimize query calls to the database(idk if this true tho, perhaps only making alias)
+    # after doing T2a perhaps this is not needed lol
     user_expertise = Fame.objects.filter(user=user)
     # T1
     # Fetch the fame level tied to the user and get any expertise area with
@@ -124,17 +125,25 @@ def submit_post(
         post.published = False
 
     # T2a
+    # Fetch the newly assigned negative truth ratings by magic AI and lower the fame level of the user expertise area
     negative_truth_ratings = PostExpertiseAreasAndRatings.objects.filter(
         post=post, truth_rating__numeric_value__lt=0
     ).values("expertise_area")
     for ntr in negative_truth_ratings:
-        deteriorating_user_expertise = user_expertise.filter(expertise_area=ntr["expertise_area"])
-        if deteriorating_user_expertise.count() == 0:
+        deteriorating_user_expertise = Fame.objects.get(
+            user=user, expertise_area=ntr["expertise_area"]
+            )
+        print(deteriorating_user_expertise)
+        if deteriorating_user_expertise is None:
             continue
-        deteriorating_user_expertise.values("fame_level").get_next_lower_fame_level()
+        lower_level = deteriorating_user_expertise.fame_level.get_next_lower_fame_level()
+        deteriorating_user_expertise.fame_level = lower_level
+        deteriorating_user_expertise.save()
 
-    T2b
-    unassigned_negative_truth_ratings = negative_truth_ratings.exclude(user=user)
+
+
+    #T2b
+    # unassigned_negative_truth_ratings = negative_truth_ratings.exclude(user=user)
 
     # print(negative_truth_rating)
     #########################
