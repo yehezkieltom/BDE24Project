@@ -130,6 +130,8 @@ def submit_post(
         post=post, truth_rating__numeric_value__lt=0
     ).values("expertise_area")
     for ntr in negative_truth_ratings:
+        #using filter.first() because catching the exception with get() is just not possible(tried it many times)
+        #deteriorating_user_expertise can be empty. The if statement will handle each case
         deteriorating_user_expertise = Fame.objects.filter(
                 user=user, expertise_area=ntr["expertise_area"]
                 ).first()
@@ -143,10 +145,10 @@ def submit_post(
             )
             new_bad_user_expertise.save()
             continue
-        #T2a
+        #try except block to handle the case where the user is already at the lowest fame level
         try:
             lower_level = deteriorating_user_expertise.fame_level.get_next_lower_fame_level()
-            print(lower_level)
+            #T2a
             deteriorating_user_expertise.fame_level = lower_level
             deteriorating_user_expertise.save()
         except ValueError:
@@ -154,7 +156,7 @@ def submit_post(
             FameUsers.objects.filter(id=user.id).update(is_active=False)
             Posts.objects.filter(author=user).update(published=False)
             redirect_to_logout = True
-
+    #########################
     post.save()
 
     return (
@@ -214,9 +216,29 @@ def experts():
     there is a tie, within that tie sort by date_joined (most recent first). Note that expertise areas with no expert
     may be omitted.
     """
-    pass
+    # pass
     #########################
     # add your code here
+    complete_expert_list = dict()
+    expertise_areas = ExpertiseAreas.objects.all()
+    for area in expertise_areas:
+        area_experts = []
+        experts = Fame.objects.filter(
+            expertise_area=area,
+            fame_level__numeric_value__gt=0
+            ).order_by(
+            "-fame_level__numeric_value", "-user__date_joined"
+            ).values("user", "fame_level__numeric_value")
+        if experts.count() == 0:
+            continue
+        for expert in experts:
+            area_expert = {
+                "user": FameUsers.objects.get(id=expert["user"]),
+                "fame_level_numeric": expert["fame_level__numeric_value"]
+            }
+            area_experts.append(area_expert)
+        complete_expert_list[area] = area_experts
+    return complete_expert_list
     #########################
 
 
@@ -228,8 +250,28 @@ def bullshitters():
     there is a tie, within that tie sort by date_joined (most recent first). Note that expertise areas with no expert
     may be omitted.
     """
-    pass
+    # pass
     #########################
     # add your code here
+    complete_bullshitter_list = dict()
+    expertise_areas = ExpertiseAreas.objects.all()
+    for area in expertise_areas:
+        area_experts = []
+        bullshitters = Fame.objects.filter(
+            expertise_area=area,
+            fame_level__numeric_value__lt=0
+            ).order_by(
+            "fame_level__numeric_value", "-user__date_joined"
+            ).values("user", "fame_level__numeric_value")
+        if bullshitters.count() == 0:
+            continue
+        for bullshitter in bullshitters:
+            area_expert = {
+                "user": FameUsers.objects.get(id=bullshitter["user"]),
+                "fame_level_numeric": bullshitter["fame_level__numeric_value"]
+            }
+            area_experts.append(area_expert)
+        complete_bullshitter_list[area] = area_experts
+    return complete_bullshitter_list
     #########################
 
