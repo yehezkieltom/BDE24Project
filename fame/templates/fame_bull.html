@@ -1,0 +1,14 @@
+
+    <h1>Bullshitters</h1>
+    {% for area, bullshitters in bullshitters.items %}
+        <h2>{{ area }}</h2>
+        <ul>
+            {% for bullshitter in bullshitters %}
+                <li>
+                    User: {{ bullshitter.user }} - Fame Level: {{ bullshitter.fame_level_numeric }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% empty %}
+        <p>No Bullshitters found.</p>
+    {% endfor %}

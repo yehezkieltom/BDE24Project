@@ -17,7 +17,6 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
-
 from famesocialnetwork.views.html import home, MyLogoutView, MyLoginView
 
 urlpatterns = [
@@ -42,4 +41,5 @@ urlpatterns = [
     path(
         "sn/", include("socialnetwork.urls", namespace="sn")
     ),  # reroute to social network app
+
 ]

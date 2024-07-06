@@ -1,6 +1,8 @@
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.views.generic import TemplateView
+
 
 from fame.models import FameUsers, ExpertiseAreas
 from fame.serializers import (
@@ -10,6 +12,7 @@ from fame.serializers import (
 )
 from socialnetwork import api
 from socialnetwork.api import _get_social_network_user
+from socialnetwork.api import experts
 
 
 class ExpertiseAreasApiView(APIView):
@@ -47,7 +50,6 @@ class FameUsersApiView(APIView):
     def post(self, request, *args, **kwargs):
         raise PermissionError()
 
-
 class FameListApiView(APIView):
     # add permission to check if user is authenticated
     permission_classes = [permissions.IsAuthenticated]
@@ -60,3 +62,4 @@ class FameListApiView(APIView):
 
     def post(self, request, *args, **kwargs):
         raise NotImplementedError()
+

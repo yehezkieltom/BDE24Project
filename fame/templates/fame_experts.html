@@ -1,0 +1,15 @@
+
+    <h1>Experts</h1>
+
+    {% for area, experts in experts.items %}
+        <h2>{{ area }}</h2>
+        <ul>
+            {% for expert in experts %}
+                <li>
+                    User: {{ expert.user }} - Fame Level: {{ expert.fame_level_numeric }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% empty %}
+        <p>No experts found.</p>
+    {% endfor %}
